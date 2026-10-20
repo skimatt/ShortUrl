@@ -17,22 +17,33 @@ export class StorageConfigurationError extends Error {
 
 export const KEY_PREFIX = "url:";
 
-// Optional Upstash Redis singleton
+// Optional Upstash Redis / Vercel KV singleton
 let redisInstance: Redis | null = null;
 
+export function getUpstashCredentials(): { url: string; token: string } | null {
+  const url =
+    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+  if (url && token) {
+    return { url, token };
+  }
+  return null;
+}
+
 export function hasUpstashConfigured(): boolean {
-  return Boolean(
-    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-  );
+  return Boolean(getUpstashCredentials());
 }
 
 export function isStorageConfigured(): boolean {
-  // Always true because built-in persistent local storage is always active!
+  // Always true because built-in storage is active as fallback!
   return true;
 }
 
 export function getRedisClient(): Redis | null {
-  if (!hasUpstashConfigured()) {
+  const creds = getUpstashCredentials();
+  if (!creds) {
     return null;
   }
 
@@ -41,15 +52,18 @@ export function getRedisClient(): Redis | null {
   }
 
   redisInstance = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: creds.url,
+    token: creds.token,
   });
 
   return redisInstance;
 }
 
-// Local file-backed storage fallback (active by default with zero external setup)
-const LOCAL_STORAGE_FILE = path.join(process.cwd(), "urls.json");
+// Local file-backed storage fallback (uses /tmp on Vercel serverless to prevent EROFS errors)
+const LOCAL_STORAGE_FILE =
+  process.env.VERCEL === "1"
+    ? path.join("/tmp", "urls.json")
+    : path.join(process.cwd(), "urls.json");
 
 // In-memory cache synced with disk
 let localCache: Record<string, UrlMapping> | null = null;

@@ -47,7 +47,8 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ShortenResponse | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [recentLinks, setRecentLinks] = useState<ShortenResponse[]>([]);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
 
@@ -61,6 +62,13 @@ export default function HomePage() {
         document.documentElement.getAttribute("data-theme") === "dark";
       setTheme(isDark ? "dark" : "light");
       setMounted(true);
+
+      try {
+        const saved = localStorage.getItem("shorturl_recent_links");
+        if (saved) {
+          setRecentLinks(JSON.parse(saved));
+        }
+      } catch {}
     });
   }, []);
 
@@ -92,7 +100,7 @@ export default function HomePage() {
     if (isLoading) return;
 
     setError(null);
-    setCopied(false);
+    setCopiedSlug(null);
 
     const trimmed = url.trim();
     if (!trimmed) {
@@ -125,6 +133,16 @@ export default function HomePage() {
       }
 
       setResult(data);
+
+      // Append to Recent Links list and persist in localStorage
+      setRecentLinks((prev) => {
+        const filtered = prev.filter((item) => item.slug !== data.slug);
+        const updated = [data, ...filtered].slice(0, 8);
+        try {
+          localStorage.setItem("shorturl_recent_links", JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -136,20 +154,18 @@ export default function HomePage() {
     }
   };
 
-  const handleCopy = async () => {
-    if (!result?.shortUrl) return;
-
+  const copyLink = async (targetUrl: string, slugId = "main") => {
     try {
-      await navigator.clipboard.writeText(result.shortUrl);
-      setCopied(true);
+      await navigator.clipboard.writeText(targetUrl);
+      setCopiedSlug(slugId);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       copyTimeoutRef.current = setTimeout(() => {
-        setCopied(false);
+        setCopiedSlug(null);
       }, 2000);
     } catch {
       try {
         const textArea = document.createElement("textarea");
-        textArea.value = result.shortUrl;
+        textArea.value = targetUrl;
         textArea.style.position = "fixed";
         textArea.style.opacity = "0";
         document.body.appendChild(textArea);
@@ -157,10 +173,10 @@ export default function HomePage() {
         textArea.select();
         document.execCommand("copy");
         document.body.removeChild(textArea);
-        setCopied(true);
+        setCopiedSlug(slugId);
         if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
         copyTimeoutRef.current = setTimeout(() => {
-          setCopied(false);
+          setCopiedSlug(null);
         }, 2000);
       } catch {
         setError("Unable to copy to clipboard.");
@@ -168,11 +184,31 @@ export default function HomePage() {
     }
   };
 
+  const handleDeleteRecent = (slugToDelete: string) => {
+    setRecentLinks((prev) => {
+      const updated = prev.filter((item) => item.slug !== slugToDelete);
+      try {
+        localStorage.setItem("shorturl_recent_links", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    if (result?.slug === slugToDelete) {
+      setResult(null);
+    }
+  };
+
+  const handleClearAllRecent = () => {
+    setRecentLinks([]);
+    try {
+      localStorage.removeItem("shorturl_recent_links");
+    } catch {}
+  };
+
   const handleReset = () => {
     setUrl("");
     setResult(null);
     setError(null);
-    setCopied(false);
+    setCopiedSlug(null);
     setTimeout(() => {
       inputRef.current?.focus();
     }, 50);
@@ -373,13 +409,14 @@ export default function HomePage() {
 
                 <button
                   type="button"
-                  onClick={handleCopy}
-                  className={`h-8 px-3 rounded-md font-medium text-xs flex items-center justify-center gap-1 transition-all cursor-pointer ${copied
-                    ? "bg-emerald-600 text-white"
-                    : "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90"
-                    }`}
+                  onClick={() => copyLink(result.shortUrl, "main")}
+                  className={`h-8 px-3 rounded-md font-medium text-xs flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    copiedSlug === "main"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90"
+                  }`}
                 >
-                  {copied ? (
+                  {copiedSlug === "main" ? (
                     <>
                       <Check className="w-3.5 h-3.5" />
                       <span>Copied!</span>
@@ -401,6 +438,113 @@ export default function HomePage() {
             >
               <span className="shrink-0 font-medium opacity-80">To:</span>
               <span className="font-mono truncate">{result.destinationUrl}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Links List (Shows all generated links so they accumulate!) */}
+        {recentLinks.length > 0 && (
+          <div
+            style={{
+              backgroundColor: "var(--card)",
+              borderColor: "var(--card-border)",
+            }}
+            className="mt-4 p-3.5 sm:p-4 rounded-xl border shadow-xs animate-in fade-in duration-200 backdrop-blur-xs"
+          >
+            <div className="flex items-center justify-between mb-2.5 px-0.5">
+              <span
+                className="text-[11px] font-medium tracking-wide flex items-center gap-1.5"
+                style={{ color: "var(--fg)" }}
+              >
+                <span>Recent Links</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-zinc-200/60 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                  {recentLinks.length}
+                </span>
+              </span>
+
+              <button
+                type="button"
+                onClick={handleClearAllRecent}
+                style={{ color: "var(--muted)" }}
+                className="text-[11px] hover:opacity-80 flex items-center gap-1 cursor-pointer transition-opacity"
+              >
+                <span>Clear all</span>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {recentLinks.map((item) => {
+                const isItemCopied = copiedSlug === item.slug;
+                return (
+                  <div
+                    key={item.slug}
+                    style={{
+                      backgroundColor: "var(--input-bg)",
+                      borderColor: "var(--input-border)",
+                    }}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg border transition-all"
+                  >
+                    <div className="flex-1 min-w-0 pr-1">
+                      <div className="font-mono text-xs font-semibold truncate select-all" style={{ color: "var(--fg)" }}>
+                        {item.shortUrl}
+                      </div>
+                      <div className="text-[11px] font-mono truncate mt-0.5" style={{ color: "var(--muted)" }}>
+                        {item.destinationUrl}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                      <a
+                        href={item.shortUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          borderColor: "var(--card-border)",
+                          color: "var(--fg)",
+                        }}
+                        className="h-7 px-2 rounded-md border text-[11px] font-medium flex items-center gap-1 hover:opacity-80 transition-opacity"
+                        title="Visit link"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Visit</span>
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => copyLink(item.shortUrl, item.slug)}
+                        className={`h-7 px-2.5 rounded-md font-medium text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
+                          isItemCopied
+                            ? "bg-emerald-600 text-white"
+                            : "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90"
+                        }`}
+                      >
+                        {isItemCopied ? (
+                          <>
+                            <Check className="w-3 h-3" />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRecent(item.slug)}
+                        aria-label="Remove link from history"
+                        style={{ color: "var(--muted)" }}
+                        className="p-1 hover:text-red-500 transition-colors cursor-pointer"
+                        title="Remove"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
