@@ -191,7 +191,12 @@ export default function HomePage() {
 
       {/* Header */}
       <header className="w-full max-w-xl mx-auto px-5 py-6 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          {/* Brand SVG Mark */}
+          <div className="w-6 h-6 rounded-lg overflow-hidden flex items-center justify-center shadow-xs border border-black/5 dark:border-white/10 shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon.svg" alt="logo" className="w-full h-full object-cover" />
+          </div>
           <span className="text-xl font-bold tracking-tight">
             links<span style={{ color: "var(--terracotta)" }}>.</span>
           </span>

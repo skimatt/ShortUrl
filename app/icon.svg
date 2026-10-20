@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b111e" />
+      <stop offset="100%" stop-color="#141c2e" />
+    </linearGradient>
+    <linearGradient id="terracottaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e07a5f" />
+      <stop offset="100%" stop-color="#d46a4a" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base with Subtle Border -->
+  <rect width="64" height="64" rx="16" fill="url(#bgGrad)" />
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1.5" />
+
+  <!-- Soft Ambient Glow behind the Terracotta Dot -->
+  <circle cx="48" cy="16" r="9" fill="#d46a4a" opacity="0.35" />
+
+  <!-- Aesthetic Minimal Link Geometry (45-deg Chain) -->
+  <g stroke="#f8fafc" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left Loop -->
+    <path d="M25 33 L21.5 36.5 C18.5 39.5 18.5 44.5 21.5 47.5 C24.5 50.5 29.5 50.5 32.5 47.5 L36 44" />
+    <!-- Right Loop -->
+    <path d="M28 20 L31.5 16.5 C34.5 13.5 39.5 13.5 42.5 16.5 C45.5 19.5 45.5 24.5 42.5 27.5 L39 31" />
+    <!-- Connecting Bridge -->
+    <path d="M26 38 L38 26" />
+  </g>
+
+  <!-- Signature Terracotta Dot representing 'links.' -->
+  <circle cx="48" cy="16" r="4.5" fill="url(#terracottaGrad)" />
+  <circle cx="46.8" cy="14.8" r="1.5" fill="#ffffff" opacity="0.7" />
+</svg>
