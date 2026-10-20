@@ -10,7 +10,7 @@ export const SITE_DESCRIPTION =
 
 /**
  * Returns the canonical base URL of the deployment.
- * Prioritizes SITE_URL, then NEXT_PUBLIC_SITE_URL, then Vercel deployment URL, then request headers or localhost.
+ * Prioritizes SITE_URL, then NEXT_PUBLIC_SITE_URL, then Vercel deployment URL, then request headers, then production URL.
  */
 export function getBaseUrl(request?: Request): string {
   const envUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
@@ -37,5 +37,5 @@ export function getBaseUrl(request?: Request): string {
     }
   }
 
-  return "http://localhost:3000";
+  return "https://linkskie.vercel.app";
 }

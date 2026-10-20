@@ -37,10 +37,12 @@ describe("Config Module", () => {
     expect(getBaseUrl(mockRequest)).toBe("https://custom-host.com");
   });
 
-  it("falls back to localhost:3000 if nothing is configured", () => {
+  it("falls back to https://linkskie.vercel.app if nothing is configured", () => {
     delete process.env.SITE_URL;
     delete process.env.NEXT_PUBLIC_SITE_URL;
+    delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    delete process.env.VERCEL_URL;
 
-    expect(getBaseUrl()).toBe("http://localhost:3000");
+    expect(getBaseUrl()).toBe("https://linkskie.vercel.app");
   });
 });

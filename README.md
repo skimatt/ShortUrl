@@ -41,7 +41,7 @@ npm install
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000).
+Visit [https://linkskie.vercel.app](https://linkskie.vercel.app) (or `http://localhost:3000` for local development).
 
 ---
 
@@ -50,7 +50,7 @@ Visit [http://localhost:3000](http://localhost:3000).
 For local development, no `.env` file is required. When deploying to Vercel, configure:
 
 ```env
-SITE_URL="https://your-domain.vercel.app"
+SITE_URL="https://linkskie.vercel.app"
 UPSTASH_REDIS_REST_URL="https://your-database.upstash.io"
 UPSTASH_REDIS_REST_TOKEN="your-token"
 ```
