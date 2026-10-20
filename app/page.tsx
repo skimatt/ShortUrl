@@ -238,7 +238,7 @@ export default function HomePage() {
             style={{ color: "var(--muted)" }}
             className="text-xs sm:text-sm max-w-xs sm:max-w-sm mx-auto leading-normal"
           >
-            Shorten your links instantly with unified personal Open Graph preview.
+            Shorten your links instantly.
           </p>
         </div>
 
@@ -374,11 +374,10 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className={`h-8 px-3 rounded-md font-medium text-xs flex items-center justify-center gap-1 transition-all cursor-pointer ${
-                    copied
-                      ? "bg-emerald-600 text-white"
-                      : "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90"
-                  }`}
+                  className={`h-8 px-3 rounded-md font-medium text-xs flex items-center justify-center gap-1 transition-all cursor-pointer ${copied
+                    ? "bg-emerald-600 text-white"
+                    : "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90"
+                    }`}
                 >
                   {copied ? (
                     <>
@@ -427,7 +426,7 @@ export default function HomePage() {
           title="Instagram @skimatt_"
         >
           <InstagramIcon className="w-3.5 h-3.5" />
-          <span>@skimatt_</span>
+
         </a>
       </footer>
     </div>
